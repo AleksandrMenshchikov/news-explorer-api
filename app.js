@@ -8,6 +8,7 @@ const { celebrate, Joi, Segments } = require('celebrate');
 // const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const auth = require('./middlewares/auth');
+const { stackTraceLimit } = require('./errors/not-found-error');
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -54,15 +55,42 @@ app.use(require('./middlewares/logger').requestLogger); // подключаем 
 // роуты, не требующие авторизации
 app.use('/signup', celebrate({
   [Segments.BODY]: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-    name: Joi.string().min(2).max(30),
+    email: Joi.string().trim().required().email()
+      .messages({
+        'string.email': '"Email" должен быть валидным',
+        'string.empty': '"Email" не может быть пустым',
+        'any.required': '"Email" требуется заполнить',
+      }),
+    password: Joi.string().trim().required().min(3)
+      .messages({
+        'string.empty': '"Пароль" не может быть пустым',
+        'string.min': '"Пароль" должен быть не менее 3 символов',
+        'any.required': '"Пароль" требуется заполнить',
+      }),
+    name: Joi.string().trim().min(2).max(30)
+      .required()
+      .messages({
+        'string.empty': '"Имя" не может быть пустым',
+        'string.min': '"Имя" должно быть не менее 2 символов',
+        'string.max': '"Имя" должно быть не более 30 символов',
+        'any.required': '"Имя" требуется заполнить',
+      }),
   }),
 }), require('./controllers/users').createUser);
 app.use('/signin', celebrate({
   [Segments.BODY]: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
+    email: Joi.string().trim().required().email()
+      .messages({
+        'string.email': '"Email" должен быть валидным',
+        'string.empty': '"Email" не может быть пустым',
+        'any.required': '"Email" требуется заполнить',
+      }),
+    password: Joi.string().trim().required().min(3)
+      .messages({
+        'string.empty': '"Пароль" не может быть пустым',
+        'string.min': '"Пароль" должен быть не менее 3 символов',
+        'any.required': '"Пароль" требуется заполнить',
+      }),
   }),
 }), require('./controllers/users').login);
 
