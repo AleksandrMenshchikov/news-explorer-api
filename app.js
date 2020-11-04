@@ -8,7 +8,6 @@ const { celebrate, Joi, Segments } = require('celebrate');
 // const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const auth = require('./middlewares/auth');
-const { stackTraceLimit } = require('./errors/not-found-error');
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
