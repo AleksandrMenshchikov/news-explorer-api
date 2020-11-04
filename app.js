@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { celebrate, Joi, Segments } = require('celebrate');
-const cors = require('cors');
+// const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const auth = require('./middlewares/auth');
 
