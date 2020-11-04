@@ -30,7 +30,7 @@ mongoose.connect('mongodb://localhost:27017/newsdb', {
 });
 
 // настройка cors
-// const whitelist = ['http://localhost:4000'];
+// const whitelist = ['http://24news-explorer.ru', 'https://24news-explorer.ru'];
 // const corsOptions = {
 //   origin(origin, callback) {
 //     if (whitelist.indexOf(origin) !== -1) {
@@ -41,10 +41,13 @@ mongoose.connect('mongodb://localhost:27017/newsdb', {
 //   },
 //   credentials: true,
 // };
-app.use(cors({
-  origin: '*',
-  credentials: true,
-}));
+// app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
 app.use(require('./middlewares/logger').requestLogger); // подключаем логгер запросов
 
