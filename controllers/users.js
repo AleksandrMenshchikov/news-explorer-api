@@ -17,7 +17,13 @@ module.exports.getUser = (req, res, next) => {
         res.status(200).json(user);
       }
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.kind === 'ObjectId') {
+        next(new BadRequestError('Пользователь с данным id должен быть строкой из 24 шестнадцатеричных символов'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
