@@ -1,9 +1,10 @@
 const Article = require('../models/article');
 const NotFoundError = require('../errors/not-found-error');
 const ForbiddenError = require('../errors/forbidden-error');
+const BadRequestError = require('../errors/bad-request-error');
 
 module.exports.getArticles = (req, res, next) => {
-  Article.find({}).select('+owner').populate('owner')
+  Article.find({})
     .then((articles) => res.json(articles))
     .catch((err) => next(err));
 };
@@ -20,7 +21,13 @@ module.exports.createArticle = (req, res, next) => {
       Article.findById(article._id).select('+owner').populate('owner').then((result) => res.json(result))
         .catch((err) => next(err));
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(Object.values(err.errors).map((item) => item.message).join(', ')));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.deleteArticle = (req, res, next) => {
@@ -40,5 +47,11 @@ module.exports.deleteArticle = (req, res, next) => {
         throw new ForbiddenError('Попытка удалить чужую статью');
       }
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.kind === 'ObjectId') {
+        next(new BadRequestError('ID статьи должен быть строкой из 24 шестнадцатеричных символов'));
+      } else {
+        next(err);
+      }
+    });
 };

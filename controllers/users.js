@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
 const User = require('../models/user');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
@@ -12,8 +13,9 @@ module.exports.getUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователь не найден с данным id');
+      } else {
+        res.status(200).json(user);
       }
-      res.status(200).json(user);
     })
     .catch((err) => next(err));
 };
@@ -37,11 +39,19 @@ module.exports.createUser = (req, res, next) => {
         }).catch((err) => {
           if (err.name === 'MongoError' && err.code === 11000) {
             next(new ConflictError('Пользователь с таким email уже существует'));
+          } else if (err.name === 'ValidationError') {
+            next(new BadRequestError(Object.values(err.errors).map((item) => item.message).join(', ')));
           } else {
             next(err);
           }
         });
-    }).catch((err) => next(err));
+    }).catch((err) => {
+      if (err.name === 'Error') {
+        next(new BadRequestError('"пароль" требуется заполнить'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.login = (req, res, next) => {
@@ -52,23 +62,23 @@ module.exports.login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new BadRequestError('Неправильно указан email или пароль');
+        throw new UnauthorizedError('Пользователь с таким email не зарегистрирован');
       }
       userMatched = user;
       return bcrypt.compare(password, user.password);
     })
     .then((matched) => {
-      // аутентификация успешна
-      if (matched) {
-        const token = jwt.sign({ _id: userMatched._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
-
-        res.cookie('jwt', token, {
-          maxAge: 3600000 * 24 * 7,
-          httpOnly: true,
-          sameSite: true,
-        }).status(201).json({ message: 'JWT успешно создан и сохранен в Cookie', userId: userMatched._id });
+      if (!matched) {
+        throw new BadRequestError('Неправильно указан пароль');
       }
-      throw new BadRequestError('Неправильно указан email или пароль');
+      // аутентификация успешна
+      const token = jwt.sign({ _id: userMatched._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
+
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      }).status(201).json({ message: 'JWT успешно создан и сохранен в Cookie', userId: userMatched._id });
     })
     .catch((err) => next(err));
 };

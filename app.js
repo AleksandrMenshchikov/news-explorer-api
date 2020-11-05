@@ -8,6 +8,8 @@ const cookieParser = require('cookie-parser');
 const limiter = require('./security_helpers/rateLimit');
 const auth = require('./middlewares/auth');
 
+const { BASE_URL_MONGODB } = process.env;
+
 const { PORT = 6000 } = process.env;
 const app = express();
 app.use(cookieParser());
@@ -16,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(limiter);
 app.use(helmet());
 
-mongoose.connect('mongodb://localhost:27017/newsdb', {
+mongoose.connect(`mongodb://${BASE_URL_MONGODB}/newsdb`, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -30,7 +32,7 @@ mongoose.connect('mongodb://localhost:27017/newsdb', {
 //     if (whitelist.indexOf(origin) !== -1) {
 //       callback(null, true);
 //     } else {
-//       callback(new Error('Not allowed by CORS'));
+//       callback(new ForbiddenError('CORS не разрешает кросс-доменные запросы'));
 //     }
 //   },
 //   credentials: true,
@@ -58,41 +60,12 @@ app.use('/signin',
 app.use(auth);
 
 // роуты, которым авторизация нужна
-app.use('/users', require('./routes/users'));
-app.use('/articles', require('./routes/articles'));
-app.use('/*', require('./routes/pageNotFound'));
+app.use(require('./routes/index'));
 
 app.use(require('./middlewares/logger').errorLogger); // подключаем логгер ошибок
 
 // централизованный обработчик ошибок
-app.use((err, req, res, next) => {
-  // если у ошибки нет статуса, выставляем 500
-  const { statusCode = 500, message } = err;
-
-  if (err.message === 'Error: Not allowed by CORS') {
-    res.status(500).send({ message: 'CORS не разрешает кросс-доменные запросы' });
-  } else if (err.message === 'data and salt arguments required') {
-    res.status(400).send({ message: 'Требуется передать данные' });
-  } else if (err.name === 'ValidationError') {
-    res.status(400).send({ message: err.message.split(': ')[2] });
-  } else if (err.message === 'celebrate request validation failed') {
-    res.status(400).send({
-      message: err.details.get(Array.from(err.details.keys())[0]).details[0].message,
-    });
-  } else if (err.kind === 'ObjectId') {
-    res.status(400).send({ message: 'Переданный аргумент должен быть одной строкой из 12 байтов или строкой из 24 шестнадцатеричных символов' });
-  } else {
-    res
-      .status(statusCode)
-      .send({
-      // проверяем статус и выставляем сообщение в зависимости от него
-        message: statusCode === 500
-          ? 'На сервере произошла ошибка'
-          : message,
-      });
-  }
-  next();
-});
+app.use(require('./errors/centralizedErrorHandler'));
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

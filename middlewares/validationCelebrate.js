@@ -4,15 +4,15 @@ module.exports.signup = celebrate({
   [Segments.BODY]: Joi.object().keys({
     email: Joi.string().trim().required().email()
       .messages({
-        'string.email': '"Email" должен быть валидным',
-        'string.empty': '"Email" не может быть пустым',
-        'any.required': '"Email" требуется заполнить',
+        'string.email': '"email" должен быть валидным',
+        'string.empty': '"email" не может быть пустым',
+        'any.required': '"email" требуется заполнить',
       }),
     password: Joi.string().trim().required().min(3)
       .messages({
-        'string.empty': '"Пароль" не может быть пустым',
-        'string.min': '"Пароль" должен быть не менее 3 символов',
-        'any.required': '"Пароль" требуется заполнить',
+        'string.empty': '"пароль" не может быть пустым',
+        'string.min': '"пароль" должен быть не менее 3 символов',
+        'any.required': '"пароль" требуется заполнить',
       }),
     name: Joi.string().trim().min(2).max(30)
       .required()
@@ -29,20 +29,20 @@ module.exports.signin = celebrate({
   [Segments.BODY]: Joi.object().keys({
     email: Joi.string().trim().required().email()
       .messages({
-        'string.email': '"Email" должен быть валидным',
-        'string.empty': '"Email" не может быть пустым',
-        'any.required': '"Email" требуется заполнить',
+        'string.email': '"email" должен быть валидным',
+        'string.empty': '"email" не может быть пустым',
+        'any.required': '"email" требуется заполнить',
       }),
     password: Joi.string().trim().required().min(3)
       .messages({
-        'string.empty': '"Пароль" не может быть пустым',
-        'string.min': '"Пароль" должен быть не менее 3 символов',
-        'any.required': '"Пароль" требуется заполнить',
+        'string.empty': '"пароль" не может быть пустым',
+        'string.min': '"пароль" должен быть не менее 3 символов',
+        'any.required': '"пароль" требуется заполнить',
       }),
   }),
 });
 
-module.exports.postArticle = celebrate({
+module.exports.createArticle = celebrate({
   [Segments.BODY]: Joi.object().keys({
     keyword: Joi.string().required().messages({
       'any.required': '"keyword" требуется заполнить',

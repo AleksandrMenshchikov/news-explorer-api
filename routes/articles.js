@@ -4,7 +4,7 @@ const { getArticles, createArticle, deleteArticle } = require('../controllers/ar
 router.get('/', getArticles);
 
 router.post('/',
-  require('../middlewares/validationCelebrate').postArticle,
+  require('../middlewares/validationCelebrate').createArticle,
   createArticle);
 
 router.delete('/:articleId',
