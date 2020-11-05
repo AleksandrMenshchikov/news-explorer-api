@@ -4,15 +4,9 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const { celebrate, Joi, Segments } = require('celebrate');
 // const cors = require('cors');
-const rateLimit = require('express-rate-limit');
+const limiter = require('./security_helpers/rateLimit');
 const auth = require('./middlewares/auth');
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // limit each IP to 200 requests per windowMs
-});
 
 const { PORT = 6000 } = process.env;
 const app = express();
@@ -52,46 +46,13 @@ app.use((req, res, next) => {
 app.use(require('./middlewares/logger').requestLogger); // подключаем логгер запросов
 
 // роуты, не требующие авторизации
-app.use('/signup', celebrate({
-  [Segments.BODY]: Joi.object().keys({
-    email: Joi.string().trim().required().email()
-      .messages({
-        'string.email': '"Email" должен быть валидным',
-        'string.empty': '"Email" не может быть пустым',
-        'any.required': '"Email" требуется заполнить',
-      }),
-    password: Joi.string().trim().required().min(3)
-      .messages({
-        'string.empty': '"Пароль" не может быть пустым',
-        'string.min': '"Пароль" должен быть не менее 3 символов',
-        'any.required': '"Пароль" требуется заполнить',
-      }),
-    name: Joi.string().trim().min(2).max(30)
-      .required()
-      .messages({
-        'string.empty': '"Имя" не может быть пустым',
-        'string.min': '"Имя" должно быть не менее 2 символов',
-        'string.max': '"Имя" должно быть не более 30 символов',
-        'any.required': '"Имя" требуется заполнить',
-      }),
-  }),
-}), require('./controllers/users').createUser);
-app.use('/signin', celebrate({
-  [Segments.BODY]: Joi.object().keys({
-    email: Joi.string().trim().required().email()
-      .messages({
-        'string.email': '"Email" должен быть валидным',
-        'string.empty': '"Email" не может быть пустым',
-        'any.required': '"Email" требуется заполнить',
-      }),
-    password: Joi.string().trim().required().min(3)
-      .messages({
-        'string.empty': '"Пароль" не может быть пустым',
-        'string.min': '"Пароль" должен быть не менее 3 символов',
-        'any.required': '"Пароль" требуется заполнить',
-      }),
-  }),
-}), require('./controllers/users').login);
+app.use('/signup',
+  require('./middlewares/validationCelebrate').signup,
+  require('./controllers/users').createUser);
+
+app.use('/signin',
+  require('./middlewares/validationCelebrate').signin,
+  require('./controllers/users').login);
 
 // авторизация
 app.use(auth);
@@ -110,16 +71,16 @@ app.use((err, req, res, next) => {
 
   if (err.message === 'Error: Not allowed by CORS') {
     res.status(500).send({ message: 'CORS не разрешает кросс-доменные запросы' });
-  } else if (err.name === 'MongoError' && err.code === 11000) {
-    res.status(409).send({ message: 'Пользователь с таким email уже существует', error: err.message });
   } else if (err.message === 'data and salt arguments required') {
     res.status(400).send({ message: 'Требуется передать данные' });
   } else if (err.name === 'ValidationError') {
-    res.status(400).send({ message: 'Указанные данные не прошли валидацию', error: err.message });
+    res.status(400).send({ message: err.message.split(': ')[2] });
   } else if (err.message === 'celebrate request validation failed') {
-    res.status(400).send({ message: 'Указанные данные не прошли валидацию', error: err.details.get(Array.from(err.details.keys())[0]) });
+    res.status(400).send({
+      message: err.details.get(Array.from(err.details.keys())[0]).details[0].message,
+    });
   } else if (err.kind === 'ObjectId') {
-    res.status(400).send({ message: 'Указанный id не соответсвует формату ObjectId MongoDB', error: err });
+    res.status(400).send({ message: 'Переданный аргумент должен быть одной строкой из 12 байтов или строкой из 24 шестнадцатеричных символов' });
   } else {
     res
       .status(statusCode)

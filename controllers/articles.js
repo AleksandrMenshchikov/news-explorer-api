@@ -3,13 +3,8 @@ const NotFoundError = require('../errors/not-found-error');
 const Forbidden = require('../errors/forbidden-error');
 
 module.exports.getArticles = (req, res, next) => {
-  Article.find({})
-    .then((articles) => {
-      if (!articles || articles.length === 0) {
-        throw new NotFoundError('Статьи не найдены в базе данных');
-      }
-      res.json(articles);
-    })
+  Article.find({}).select('+owner').populate('owner')
+    .then((articles) => res.json(articles))
     .catch((err) => next(err));
 };
 

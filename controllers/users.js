@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
+const Conflict = require('../errors/conflict-error');
 const User = require('../models/user');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
@@ -33,7 +34,13 @@ module.exports.createUser = (req, res, next) => {
             email: user.email,
             name: user.name,
           });
-        }).catch((err) => next(err));
+        }).catch((err) => {
+          if (err.name === 'MongoError' && err.code === 11000) {
+            next(new Conflict('Пользователь с таким email уже существует'));
+          } else {
+            next(err);
+          }
+        });
     }).catch((err) => next(err));
 };
 
