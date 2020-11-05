@@ -63,7 +63,7 @@ app.use(require('./routes/index'));
 app.use(require('./middlewares/logger').errorLogger); // подключаем логгер ошибок
 
 // централизованный обработчик ошибок
-app.use(require('./errors/centralizedErrorHandler'));
+app.use(require('./middlewares/centralizedErrorHandler'));
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
