@@ -1,6 +1,6 @@
 const Article = require('../models/article');
 const NotFoundError = require('../errors/not-found-error');
-const Forbidden = require('../errors/forbidden-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
 module.exports.getArticles = (req, res, next) => {
   Article.find({}).select('+owner').populate('owner')
@@ -37,7 +37,7 @@ module.exports.deleteArticle = (req, res, next) => {
           })
           .catch((err) => next(err));
       } else {
-        throw new Forbidden('Попытка удалить чужую статью');
+        throw new ForbiddenError('Попытка удалить чужую статью');
       }
     })
     .catch((err) => next(err));
