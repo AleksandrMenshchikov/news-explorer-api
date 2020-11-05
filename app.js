@@ -8,8 +8,6 @@ const cookieParser = require('cookie-parser');
 const limiter = require('./security_helpers/rateLimit');
 const auth = require('./middlewares/auth');
 
-const { BASE_URL_MONGODB } = process.env;
-
 const { PORT = 6000 } = process.env;
 const app = express();
 app.use(cookieParser());
@@ -18,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(limiter);
 app.use(helmet());
 
-mongoose.connect(`mongodb://${BASE_URL_MONGODB}/newsdb`, {
+mongoose.connect('mongodb://localhost:27017/newsdb', {
   useUnifiedTopology: true,
   useNewUrlParser: true,
   useCreateIndex: true,
