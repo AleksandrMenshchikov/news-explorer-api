@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(limiter);
 app.use(helmet());
 
-mongoose.connect(process.env.DB_CONN, {
+mongoose.connect(require('./config').DB_CONN, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
   useCreateIndex: true,
