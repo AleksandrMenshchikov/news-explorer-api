@@ -22,7 +22,7 @@ module.exports.signup = celebrate({
         'string.max': '"Имя" должно быть не более 30 символов',
         'any.required': '"Имя" требуется заполнить',
       }),
-  }),
+  }).options({ abortEarly: false }),
 });
 
 module.exports.signin = celebrate({
@@ -39,7 +39,7 @@ module.exports.signin = celebrate({
         'string.min': '"пароль" должен быть не менее 3 символов',
         'any.required': '"пароль" требуется заполнить',
       }),
-  }),
+  }).options({ abortEarly: false }),
 });
 
 module.exports.createArticle = celebrate({
@@ -74,7 +74,7 @@ module.exports.createArticle = celebrate({
       'string.empty': '"image" не может быть пустым',
       'string.pattern.base': '"image" не соответствует требуемому шаблону URL',
     }),
-  }),
+  }).options({ abortEarly: false }),
 });
 
 module.exports.deleteArticle = celebrate({
@@ -86,5 +86,5 @@ module.exports.deleteArticle = celebrate({
         'any.required': '"articleId" требуется заполнить',
         'string.length': '"articleId" длина должна быть 24 символа',
       }),
-  }),
+  }).options({ abortEarly: false }),
 });

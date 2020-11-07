@@ -6,7 +6,7 @@ module.exports = (err, req, res, next) => {
 
   if (isCelebrateError(err)) {
     res.status(400).send({
-      message: err.details.get(Array.from(err.details.keys())[0]).details[0].message,
+      message: err.details.get(Array.from(err.details.keys())[0]).details.map((item) => item.message).join(', '),
     });
   } else {
     res.status(statusCode).send({
