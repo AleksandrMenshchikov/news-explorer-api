@@ -40,7 +40,12 @@ mongoose.connect(require('./config').DB_CONN, {
 
 app.use(
   cors({
-    origin: ['*', 'http://localhost:3000'],
+    origin: [
+      '*',
+      'http://localhost:3000',
+      'http://24news-explorer.ru',
+      'https://24news-explorer.ru',
+    ],
     credentials: true,
   }),
 );
