@@ -79,11 +79,21 @@ module.exports.login = (req, res, next) => {
       // аутентификация успешна
       const token = jwt.sign({ _id: userMatched._id }, JWT_SECRET);
 
-      res.cookie('jwt', token, {
-        maxAge: 3600000 * 24 * 7,
-        httpOnly: true,
-        sameSite: true,
-      }).status(201).json({ message: 'JWT успешно создан и сохранен в Cookie', userId: userMatched._id });
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+          sameSite: true,
+        })
+        .status(201)
+        .json({
+          jwtCreated: 'JWT успешно создан и сохранен в Cookie',
+          userId: userMatched._id,
+        });
     })
     .catch((err) => next(err));
+};
+
+module.exports.signout = (req, res) => {
+  res.clearCookie('jwt').status(200).send({ jwtDeleted: 'Успешный выход из системы' });
 };

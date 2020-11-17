@@ -4,11 +4,12 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-// const cors = require('cors');
+const cors = require('cors');
 const limiter = require('./security_helpers/rateLimit');
 const auth = require('./middlewares/auth');
+// const ForbiddenError = require('./errors/forbidden-error');
 
-const { PORT = 6000 } = process.env;
+const { PORT = 4000 } = process.env;
 const app = express();
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -37,11 +38,18 @@ mongoose.connect(require('./config').DB_CONN, {
 // };
 // app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
+app.use(
+  cors({
+    origin: ['*', 'http://localhost:3000'],
+    credentials: true,
+  }),
+);
+
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//   next();
+// });
 
 app.use(require('./middlewares/logger').requestLogger); // подключаем логгер запросов
 

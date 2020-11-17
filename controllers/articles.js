@@ -5,6 +5,8 @@ const BadRequestError = require('../errors/bad-request-error');
 
 module.exports.getArticles = (req, res, next) => {
   Article.find({})
+    .select('+owner')
+    .populate('owner')
     .then((articles) => res.json(articles))
     .catch((err) => next(err));
 };
